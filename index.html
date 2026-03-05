@@ -69,9 +69,16 @@
                 id: "g2", 
                 title: "Youtube",
                 thumb: "https://static.vecteezy.com/system/resources/previews/065/386/840/non_2x/youtube-icon-logo-yt-app-editable-transparent-background-premium-social-media-design-for-digital-download-free-png.png",
-		url: "https://yt-clone-bay.vercel.app/",
-                tut: "Watch anything and go full screen ."
+                url: "https://yt-clone-bay.vercel.app/",
+                tut: "Watch anything and go full screen."
             }
+			 { 
+                id: "g3", 
+                title: "Five Nights At Freddys",
+                thumb: "https://logos-world.net/wp-content/uploads/2023/06/Five-Nights-at-Freddys-Symbol.png",
+                url: "https://irv77.github.io/hd_fnaf/",
+                tut: "Watch anything and go full screen."
+            },
         ];
 
         const ShareModal = ({ isOpen, onClose, gameTitle }) => {
@@ -118,20 +125,40 @@
                 }
             };
 
+            // Ensure iframe regains focus after fullscreen and pointer lock
+            const handlePointerLock = () => {
+                const iframeEl = containerRef.current.querySelector('iframe');
+                iframeEl?.contentWindow.focus();
+                containerRef.current.requestPointerLock?.();
+            };
+
             useEffect(() => {
-                const handler = () => setIsFull(!!document.fullscreenElement);
-                document.addEventListener('fullscreenchange', handler);
-                return () => document.removeEventListener('fullscreenchange', handler);
+                const fullscreenHandler = () => {
+                    setIsFull(!!document.fullscreenElement);
+                    const iframeEl = containerRef.current.querySelector('iframe');
+                    iframeEl?.contentWindow.focus();
+                };
+                const pointerHandler = () => {
+                    if (document.pointerLockElement !== containerRef.current) {
+                        console.log('Pointer lock lost. Click game to regain controls.');
+                    }
+                };
+                document.addEventListener('fullscreenchange', fullscreenHandler);
+                document.addEventListener('pointerlockchange', pointerHandler);
+                return () => {
+                    document.removeEventListener('fullscreenchange', fullscreenHandler);
+                    document.removeEventListener('pointerlockchange', pointerHandler);
+                };
             }, []);
 
             return (
                 <div className="flex flex-col gap-6">
-                    <div ref={containerRef} className={`aspect-video lg:aspect-[21/9] bg-black relative group transition-all duration-500 shadow-2xl overflow-hidden ${isFull ? 'pseudo-fullscreen' : 'rounded-[2.5rem] border border-white/10'}`}>
-                        {!game.isInternal ? (
-                            <iframe src={game.url} className="w-full h-full border-none" allow="autoplay; gamepad; fullscreen" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-cyan-500 font-black italic">INTERNAL_ENGINE_READY</div>
-                        )}
+                    <div
+                        ref={containerRef}
+                        onClick={handlePointerLock}
+                        className={`aspect-video lg:aspect-[21/9] bg-black relative group transition-all duration-500 shadow-2xl overflow-hidden ${isFull ? 'pseudo-fullscreen' : 'rounded-[2.5rem] border border-white/10'}`}
+                    >
+                        <iframe src={game.url} className="w-full h-full border-none" allow="autoplay; gamepad; fullscreen" />
                         <div className="absolute top-6 right-6 flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={handleToggle} className="bg-white/10 hover:bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/10 text-white">
                                 <Icon name={isFull ? "Minimize" : "Maximize"} />
@@ -161,7 +188,6 @@
 
             return (
                 <div className="min-h-screen pt-24 pb-24 bg-[#020202] px-8">
-                    {/* NAV */}
                     <nav className="fixed top-0 inset-x-0 h-16 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-8 z-50">
                         <div className="flex items-center gap-3 cursor-pointer" onClick={() => setView({type:'GRID'})}>
                             <img src="https://www.pngplay.com/wp-content/uploads/13/Freepnglogos-Free-PNG.png" className="w-8" alt="CT" />
@@ -169,9 +195,7 @@
                         </div>
                     </nav>
 
-                    {/* BIG SCREEN LAYOUT */}
                     <div className="max-w-[1800px] mx-auto grid grid-cols-1 xl:grid-cols-4 gap-12">
-                        
                         <div className="xl:col-span-3">
                             {view.type === 'GRID' ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -189,7 +213,6 @@
                             )}
                         </div>
 
-                        {/* SIDEBAR */}
                         <div className="xl:col-span-1 border-l border-white/5 pl-10">
                             <div className="sticky top-28">
                                 <h2 className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.4em] mb-6">Instructions</h2>
@@ -198,15 +221,11 @@
                                         <p className="mb-4 text-white font-bold italic uppercase">Select anything and go full screen with the icon.</p>
                                         <p>{view.type === 'PLAYER' ? view.data.tut : "Select a game to view the specialized tutorial."}</p>
                                     </div>
-                                    <div className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest px-2">
-                                        
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* EMAIL FOOTER */}
                     <div className="fixed bottom-8 right-8 z-50">
                         <a href="mailto:procatdev.help@gmail.com" className="bg-[#111] hover:bg-cyan-500 hover:text-black px-5 py-2 rounded-xl border border-white/10 text-[10px] font-black uppercase transition-all">
                             Email: procatdev.help@gmail.com
